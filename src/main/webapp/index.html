@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+	</head>
+	<body>
+		param1: <input type="text" value="200" id="param1"/><br/>
+		param2: <input type="text" value="こんにちは" id="param2"/><br/>
+		charset(request): <select name="charset_request" id="charset_request">
+			<option value="UTF-8">UTF-8</option>
+			<option value="Shift_JIS">Shift_JIS</option>
+			<option value="EUC-JP">EUC-JP</option>
+		</select>
+		charset(response): 
+		<select name="charset_response" id="charset_response">
+			<option value="UTF-8">UTF-8</option>
+			<option value="Shift_JIS">Shift_JIS</option>
+			<option value="EUC-JP">EUC-JP</option>
+		</select><br/>
+		<button type="button" id="send_button_servlet" data-url='/JISAjaxJSONSample/servlet/jis/showResult'>
+			送信(servlet)
+		</button><br/>
+		<button type="button" id="send_button_spring" data-url='/JISAjaxJSONSample/app/jis/showResult'>
+			送信(spring mvc)
+		</button>
+		
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/encoding-japanese/1.0.29/encoding.js"></script>
+		<script>
+		
+			function postJSON() {
+
+				// 動作確認をしやすくするため、セレクトボックスからエンコーディングを選択できるようにしています
+				var requestCharsetSelect = document.getElementById('charset_request');
+				var requestCharset = requestCharsetSelect.options[requestCharsetSelect.selectedIndex].value;
+				
+				var responseCharsetSelect = document.getElementById('charset_response');
+				var responseCharset = responseCharsetSelect.options[responseCharsetSelect.selectedIndex].value;
+
+				var requestBody = JSON.stringify({
+						param1: document.getElementById('param1').value,
+						param2: document.getElementById('param2').value
+				});
+
+				// (a)
+				// JSON文字列を指定されたエンコーディングに変換します。
+				// encoding.jsに対してエンコーディングを指定する文字列は、encoding.jsのドキュメントに従います。
+				// https://github.com/polygonplanet/encoding.js/blob/master/README_ja.md
+				var charsetNameMapping = {
+						'Shift_JIS': 'SJIS',
+						'UTF-8': 'UTF8',
+						'EUC-JP': 'EUCJP',
+				};
+				var encodedRequestBody = Encoding.convert(requestBody, {
+					from: 'UNICODE',
+					to: charsetNameMapping[requestCharset],
+					type: 'arraybuffer'
+				});
+				
+				// (b)
+				// リクエストボディとして送信するBlobを生成します。
+				// 送信時に、指定したcharsetがContent-Typeヘッダに付与されるよう「type」を明示します。
+				var mimeType = 'application/json; charset=' + requestCharset;
+				var blobRequestBody = new Blob([new Uint8Array(encodedRequestBody)], {type: mimeType})
+				
+				var xhttp = new XMLHttpRequest();
+				xhttp.onreadystatechange = function() {
+					if (this.status === 200 && this.readyState === this.DONE) {
+						// (c)
+						// レスポンスのContent-Typeヘッダのcharsetでエンコーディングが判断されます。
+						// レスポンスのContent-Typeヘッダにcharsetが明示されていない場合、
+						// かつ、レスポンスボディのエンコーディングがUTF-8でない場合、
+						// 「overrideMimeType」メソッドを使ってcharsetを明示することで対応できます。
+						var responseJSON = JSON.parse(this.responseText);
+						alert('result1=' + responseJSON.result1 + ', result2=' + responseJSON.result2);
+					}
+				};
+					
+				xhttp.open('POST', this.dataset.url);
+				// サーバーサイドのサンプル実装にて、レスポンスのContent-Typeを制御するためにAcceptヘッダーを設定します。
+				xhttp.setRequestHeader('Accept', 'application/json; charset=' + responseCharset);
+				// IE11対策。Chrome, FirefoxはBlob生成時の「type」の指定によりContent-Typeヘッダが付与されましたが、
+				// IE11ではsetRequestHeaderしなければContet-Typeが付与されませんでした。
+				xhttp.setRequestHeader('Content-Type', mimeType);
+				xhttp.send(blobRequestBody);				
+			};
+
+			document.getElementById('send_button_servlet')
+				.addEventListener('click', postJSON);
+			document.getElementById('send_button_spring')
+				.addEventListener('click', postJSON);
+			
+		</script>
+	</body>
+</html>
