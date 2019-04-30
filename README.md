@@ -17,3 +17,6 @@ AjaxでJSONを扱う際に任意のエンコーディングを指定できるよ
 ```
 mvn clean package
 ```
+アプリケーションサーバーの起動後、以下のURLにアクセスすると動作確認用の画面が表示されます。
+
+http://[ホスト]:[ポート]/JISAjaxJSONSample/
