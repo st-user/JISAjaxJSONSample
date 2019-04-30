@@ -1,0 +1,2 @@
+# JISAjaxJSONSample
+AjaxでJSONを扱う際に任意のエンコーディングを指定できるように実装したサンプル
