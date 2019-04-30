@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.example.config.data.Param;
-import com.example.config.data.Result;
+import com.example.data.Param;
+import com.example.data.Result;
 
 @Controller
 @RequestMapping("/jis")

@@ -1,4 +1,4 @@
-package com.example.config.data;
+package com.example.data;
 
 /**
  * リクエストボディのJSONの変換先

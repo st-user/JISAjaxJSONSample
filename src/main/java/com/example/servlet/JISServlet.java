@@ -13,8 +13,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.example.config.data.Param;
-import com.example.config.data.Result;
+import com.example.data.Param;
+import com.example.data.Result;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @WebServlet("/servlet/jis/showResult")

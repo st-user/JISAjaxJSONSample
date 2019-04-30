@@ -1,4 +1,4 @@
-package com.example.config.data;
+package com.example.data;
 
 /**
  * JSONに変換してレスポンスボディに書き込むクラス
