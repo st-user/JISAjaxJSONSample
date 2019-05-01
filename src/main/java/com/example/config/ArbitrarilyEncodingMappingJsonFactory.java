@@ -17,10 +17,15 @@ import com.fasterxml.jackson.databind.MappingJsonFactory;
  * {@link JsonParser},{@link JsonGenerator}生成時に必要に応じてエンコーディングを指定できるように{@link MappingJsonFactory}を拡張したクラスです。
  * {@link JsonParser},{@link JsonGenerator}のエンコーディングは以下の通りに選択されます。
  * <ul>
- * <li>{@link JsonParser}:
- * リクエストのContent-Typeヘッダーフィールドのcharset。同charsetが存在しない場合{@link InputStream}のバイトストリームから自動判定されます。</li>
- * <li>{@link JsonGenerator}:
- * {@link ArbitrarilyEncodingMappingJsonFactory}記載の「レスポンスのContent-typeヘッダーフィールドのcharset」と同様の方法で選択されます。</li>
+ * <li>
+ * {@link JsonParser}:
+ * リクエストのContent-Typeヘッダーフィールドが「text/plain」の場合、同ヘッダーフィールドのcharset。
+ * それ以外の場合{@link InputStream}のバイトストリームから自動判定されます。</li>
+ * <li>
+ * {@link JsonGenerator}:
+ * リクエストのContent-Typeヘッダーフィールドが「text/plain」となる場合、
+ * 同ヘッダーフィールドのcharset。それ以外の場合{@link JsonEncoding}に合致するものが選択されます。
+ * </li>
  * </ul>
  */
 @SuppressWarnings("serial")

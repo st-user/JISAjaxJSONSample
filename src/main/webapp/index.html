@@ -59,7 +59,7 @@
 				// (b)
 				// リクエストボディとして送信するBlobを生成します。
 				// 送信時に、指定したcharsetがContent-Typeヘッダに付与されるよう「type」を明示します。
-				var mimeType = 'application/json; charset=' + requestCharset;
+				var mimeType = 'text/plain; charset=' + requestCharset;
 				var blobRequestBody = new Blob([new Uint8Array(encodedRequestBody)], {type: mimeType});
 				
 				var xhttp = new XMLHttpRequest();
@@ -78,10 +78,11 @@
 				// 以下のようにresponseTypeに「json」を指定するとレスポンスのContent-Typeヘッダのcharsetの指定や
 				// 「overrideMimeType」が効かなくなり、レスポンスボディパース時に強制的にUTF-8が選択されます。
 				// xhttp.responseType = 'json';
-					
-				xhttp.open('POST', this.dataset.url);
+				
+				var query = '?textRequestType=json&textResponseType=json';
+				xhttp.open('POST', this.dataset.url + query);
 				// サーバーサイドのサンプル実装にて、レスポンスのContent-Typeを制御するためにAcceptヘッダーを設定します。
-				xhttp.setRequestHeader('Accept', 'application/json; charset=' + responseCharset);
+				xhttp.setRequestHeader('Accept', 'text/plain; charset=' + responseCharset);
 				// IE11対策。Chrome, FirefoxはBlob生成時の「type」の指定によりContent-Typeヘッダが付与されましたが、
 				// IE11ではsetRequestHeaderしなければContet-Typeが付与されませんでした。
 				xhttp.setRequestHeader('Content-Type', mimeType);

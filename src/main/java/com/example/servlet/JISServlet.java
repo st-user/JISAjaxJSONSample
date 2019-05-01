@@ -1,7 +1,6 @@
 package com.example.servlet;
 
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.Charset;
@@ -25,7 +24,7 @@ public class JISServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
 		resp.setCharacterEncoding(parseToCharset(req.getHeader("Accept")).name());
-		resp.setContentType("application/json");
+		resp.setContentType("text/plain");
 
 		try (
 				Reader requestBodyReader = req.getReader(); 

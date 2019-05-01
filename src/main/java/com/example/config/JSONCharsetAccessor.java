@@ -16,77 +16,77 @@ import org.springframework.web.context.request.RequestContextHolder;
  */
 public class JSONCharsetAccessor {
 
-	private static final String REQUEST_ATTRIBUTE_KEY = JSONCharsetAccessor.class + "json.charset.request";
-	private static final String RESPONSE_ATTRIBUTE_KEY = JSONCharsetAccessor.class + "json.charset.response";
+	private static final String REQUEST_ATTRIBUTE_KEY = JSONCharsetAccessor.class + "json.mediatype.request";
+	private static final String RESPONSE_ATTRIBUTE_KEY = JSONCharsetAccessor.class + "json.mediatype.response";
 
 	/**
-	 * リクエスト属性(リクエストボディ用)にContent-Typeヘッダーフィールドのcharsetに指定されたエンコーディングをセットします
+	 * リクエスト属性(リクエストボディ用)にContent-Typeヘッダーフィールドで指定された{@link MediaType}をセットします。
 	 * {@link #getRequestCharsetAttribute()}を使用することで同一リクエスト内の後続処理でエンコーディングが取得できます。
 	 * 
 	 * @see JSONCharsetAccessor#getRequestCharsetAttribute()
 	 * @param request
 	 */
-	public static void setRequestCharsetAttribute(HttpServletRequest request) {
-		request.setAttribute(REQUEST_ATTRIBUTE_KEY, parseMediaTypeToCharset(request.getContentType()));
+	public static void setRequestMediaTypetAttribute(HttpServletRequest request) {
+		MediaType mediaType = parseMediaType(request.getContentType());
+		if (mediaType != null) {
+			request.setAttribute(REQUEST_ATTRIBUTE_KEY, mediaType);
+		}
+	}
+
+	private static MediaType parseMediaType(String contentType) {
+		try {
+			return MediaType.parseMediaType(contentType);
+		} catch (InvalidMediaTypeException e) {
+			return null;
+		}
 	}
 
 	/**
-	 * リクエスト属性(レスポンスボディ用)にAcceptヘッダーフィールドのcharsetに指定されたエンコーディングをセットします。
+	 * リクエスト属性(レスポンスボディ用)に<code>mediaType</code>で指定された{@link MediaType}をセットします。
 	 * {@link #getResponseCharsetAttribute()}を使用することで同一リクエスト内の後続処理でエンコーディングが取得できます。
 	 * 
 	 * @see JSONCharsetAccessor#getResponseCharsetAttribute()
-	 * @param request
+	 * @param mediaType
 	 */
-	public static void setResponseCharsetAttribute(HttpServletRequest request) {
-		Charset charset = parseMediaTypeToCharset(request.getHeader("Accept"));
-		request.setAttribute(RESPONSE_ATTRIBUTE_KEY, charset);
-	}
-
-	/**
-	 * リクエスト属性(レスポンスボディ用)に<code>charset</code>で指定されたエンコーディングをセットします。
-	 * {@link #getResponseCharsetAttribute()}を使用することで同一リクエスト内の後続処理で同エンコーディングが取得できます。
-	 * 
-	 * @see JSONCharsetAccessor#getResponseCharsetAttribute()
-	 * @param charset
-	 */
-	public static void setResponseCharsetAttribute(Charset charset) {
-		if (charset != null) {
+	public static void setResponseMediaTypeAttribute(MediaType mediaType) {
+		if (mediaType != null) {
 			RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
-			requestAttributes.setAttribute(RESPONSE_ATTRIBUTE_KEY, charset, RequestAttributes.SCOPE_REQUEST);
+			requestAttributes.setAttribute(RESPONSE_ATTRIBUTE_KEY, mediaType, RequestAttributes.SCOPE_REQUEST);
 		}
 	}
 
 	/**
-	 * リクエストのContent-Typeヘッダーフィールドのcharsetに指定されたエンコーディングを取得します。
+	 * リクエストのContent-TypeヘッダーフィールドのMediaTypeが「text/plain」の場合にcharsetに指定されたエンコーディングを取得します。
 	 * 
-	 * @see #setRequestCharsetAttribute(HttpServletRequest)
+	 * @see #setRequestMediaTypetAttribute(HttpServletRequest)
+	 * @return MediaTypeが「text/plain」の場合にcharsetに指定されたエンコーディング。それ以外の場合null。
 	 */
 	public static Charset getRequestCharsetAttribute() {
-		return getCharsetAttribute(REQUEST_ATTRIBUTE_KEY);
+		return getCharsetIfTextPlain(REQUEST_ATTRIBUTE_KEY);
 	}
 
 	/**
-	 * リクエストのAcceptヘッダーフィールドのcharsetに指定されたエンコーディングを取得します。
+	 * レスポンスのContent-TypeヘッダーフィールドのMediaTypeが「text/plain」の場合にcharsetに指定されたエンコーディングを取得します。
 	 * 
-	 * @see #setResponseCharsetAttribute(Charset)
-	 * @see #setResponseCharsetAttribute(HttpServletRequest)
-	 * @return
+	 * @see #setResponseMediaTypeAttribute(MediaType)
+	 * @return MediaTypeが「text/plain」の場合にcharsetに指定されたエンコーディング。それ以外の場合null。
 	 */
 	public static Charset getResponseCharsetAttribute() {
-		return getCharsetAttribute(RESPONSE_ATTRIBUTE_KEY);
+		return getCharsetIfTextPlain(RESPONSE_ATTRIBUTE_KEY);
 	}
 
-	private static Charset parseMediaTypeToCharset(String contentType) {
-		try {
-			MediaType mediaType = MediaType.parseMediaType(contentType);
-			return mediaType.getCharset();
-		} catch (InvalidMediaTypeException e) {
-			return Charset.forName("UTF-8");
+	private static Charset getCharsetIfTextPlain(String key) {
+		MediaType mediaType = getAttribute(key);
+		if (mediaType == null || !MediaType.TEXT_PLAIN.includes(mediaType)) {
+			return null;
 		}
+		return mediaType.getCharset();
 	}
 
-	private static Charset getCharsetAttribute(String key) {
+	@SuppressWarnings("unchecked")
+	private static <T> T getAttribute(String key) {
 		RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
-		return (Charset) requestAttributes.getAttribute(key, RequestAttributes.SCOPE_REQUEST);
+		Object attr = requestAttributes.getAttribute(key, RequestAttributes.SCOPE_REQUEST);
+		return (T) attr;
 	}
 }
